@@ -583,7 +583,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
         <nav class="main-navbar">
             <div class="brand-group">
                 <div class="logo-frame">
-                    <img src="OOP.jpeg" alt="Logo">
+                    <img src="../../assets/images/OOP.jpeg" alt="Logo">
                 </div>
                 <h1 class="brand-name">Admin Dashboard</h1>
             </div>
@@ -591,7 +591,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
             <div class="nav-actions">
                 <h4 class="nav-username">CYRUS</h4>
                 <div class="avatar-frame">
-                    <img src="profile3.png" alt="Profile">
+                    <img src="../../assets/images/profile3.png" alt="Profile">
                 </div>
                 <button class="exit-btn" type="button">Logout</button>
             </div>
