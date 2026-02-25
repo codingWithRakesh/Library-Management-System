@@ -3,6 +3,20 @@
 ?>
 
 <?php
+    $tableSql = "CREATE TABLE IF NOT EXISTS books (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        author VARCHAR(255) NOT NULL,
+        category VARCHAR(255) NOT NULL,
+        image_path VARCHAR(255) NOT NULL,
+        pdf_path VARCHAR(255) NULL
+    )";
+
+    if (!mysqli_query($conn, $tableSql)) {
+        echo "Error creating table: " . mysqli_error($conn);
+        exit();
+    }
+    
     //total books count
     $totalBooksSql = "SELECT COUNT(*) AS total_books FROM books";
     $totalBooksResult = mysqli_query($conn, $totalBooksSql);
