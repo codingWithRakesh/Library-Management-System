@@ -1,3 +1,136 @@
+<?php
+    include "../../db/db.php";
+?>
+
+<?php
+    $createStudent = "CREATE TABLE IF NOT EXISTS students (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL
+    )";
+
+    $tableSql = "CREATE TABLE IF NOT EXISTS books (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        author VARCHAR(255) NOT NULL,
+        category VARCHAR(255) NOT NULL,
+        image_path VARCHAR(255) NOT NULL,
+        pdf_path VARCHAR(255) NULL
+    )";
+
+    $issueTableSql = "CREATE TABLE IF NOT EXISTS issued_books (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        book_id INT NOT NULL,
+        student_id INT NOT NULL,
+        issue_date DATE NOT NULL,
+        return_date DATE NULL,
+        FOREIGN KEY (book_id) REFERENCES books(id),
+        FOREIGN KEY (student_id) REFERENCES students(id)
+    )";
+
+    $fineTableSql = "CREATE TABLE IF NOT EXISTS fines (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        issued_book_id INT NOT NULL,
+        amount DECIMAL(10, 2) NOT NULL,
+        FOREIGN KEY (issued_book_id) REFERENCES issued_books(id)
+    )";
+
+    if (!mysqli_query($conn, $createStudent)) {
+        echo "Error creating students table: " . mysqli_error($conn);
+        exit();
+    }
+    if (!mysqli_query($conn, $tableSql)) {
+        echo "Error creating books table: " . mysqli_error($conn);
+        exit();
+    }
+    if (!mysqli_query($conn, $issueTableSql)) {
+        echo "Error creating issued_books table: " . mysqli_error($conn);
+        exit();
+    }
+    if (!mysqli_query($conn, $fineTableSql)) {
+        echo "Error creating fines table: " . mysqli_error($conn);
+        exit();
+    }
+
+    $joinSql = "SELECT issued_books.id,
+            students.name AS student_name,
+            books.id AS book_id,
+            books.name AS book_name,
+            issued_books.issue_date,
+            issued_books.return_date,
+            fines.amount AS fine_amount
+            FROM issued_books
+            JOIN students ON issued_books.student_id = students.id
+            JOIN books ON issued_books.book_id = books.id
+            LEFT JOIN fines ON issued_books.id = fines.issued_book_id";
+
+    $result = mysqli_query($conn, $joinSql);
+    if (!$result) {
+        echo "Error fetching issued books: " . mysqli_error($conn);
+        exit();
+    }
+?>
+
+<?php
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_issue'])) {
+        $issueId = $_POST['issue_id'] ?? '';
+
+        if (empty($issueId)) {
+            echo "Issue ID is required for deletion.";
+            exit();
+        }
+
+        $deleteSql = "DELETE FROM issued_books WHERE id='$issueId'";
+        if (mysqli_query($conn, $deleteSql)) {
+            echo "Issue record deleted successfully.";
+            header("Location: issue.php");
+            exit();
+        } else {
+            echo "Error deleting issue record: " . mysqli_error($conn);
+        }
+    }
+?>
+
+<?php
+    if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
+        $searchTerm = $_POST['q'] ?? '';
+
+        if (empty($searchTerm)) {
+            $searchSql = "SELECT issued_books.id,
+            students.name AS student_name,
+            books.id AS book_id,
+            books.name AS book_name,
+            issued_books.issue_date,
+            issued_books.return_date,
+            fines.amount AS fine_amount
+            FROM issued_books
+            JOIN students ON issued_books.student_id = students.id
+            JOIN books ON issued_books.book_id = books.id
+            LEFT JOIN fines ON issued_books.id = fines.issued_book_id";
+        }
+
+        $searchSql = "SELECT issued_books.id,
+            students.name AS student_name,
+            books.id AS book_id,
+            books.name AS book_name,
+            issued_books.issue_date,
+            issued_books.return_date,
+            fines.amount AS fine_amount
+            FROM issued_books
+            JOIN students ON issued_books.student_id = students.id
+            JOIN books ON issued_books.book_id = books.id
+            LEFT JOIN fines ON issued_books.id = fines.issued_book_id
+            WHERE students.name LIKE '%$searchTerm%' OR books.name LIKE '%$searchTerm%'";
+
+        $result = mysqli_query($conn, $searchSql);
+        if (!$result) {
+            echo "Error searching issued books: " . mysqli_error($conn);
+            exit();
+        }
+    }
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -291,9 +424,9 @@
         <div class="page-header">
             <p class="page-title">Welcome to the Library. Browse the collection below or use search.</p>
 
-            <form class="search-form" method="get" action="">
-                <input class="searchInput" name="q" type="text" placeholder="Search books..." />
-                <button class="primary-btn" type="submit">Submit</button>
+            <form class="search-form" method="post">
+                <input class="searchInput" name="q" type="text" placeholder="Search users..." />
+                <button class="primary-btn" type="submit" name="search">Submit</button>
             </form>
         </div>
 
@@ -314,60 +447,38 @@
     </thead>
 
     <tbody>
-      <tr><td class="table-body">1</td><td class="table-body">Amit Sharma</td><td class="table-body">B001</td><td class="table-body">Introduction to Computer Science</td><td class="table-body">01-08-2025</td><td class="table-body">15-08-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
+        <?php
+        $serial = 1;
 
-      <tr><td class="table-body">2</td><td class="table-body">Riya Sen</td><td class="table-body">B002</td><td class="table-body">Advanced Mathematics</td><td class="table-body">02-08-2025</td><td class="table-body">16-08-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">3</td><td class="table-body">Rahul Verma</td><td class="table-body">B003</td><td class="table-body">Discrete Mathematics</td><td class="table-body">03-08-2025</td><td class="table-body">17-08-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">4</td><td class="table-body">Neha Gupta</td><td class="table-body">B004</td><td class="table-body">Data Structures & Algorithms</td><td class="table-body">04-08-2025</td><td class="table-body">18-08-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">5</td><td class="table-body">Arjun Malhotra</td><td class="table-body">B005</td><td class="table-body">Operating Systems</td><td class="table-body">05-08-2025</td><td class="table-body">19-08-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">6</td><td class="table-body">Priya Das</td><td class="table-body">B006</td><td class="table-body">Database System Concepts</td><td class="table-body">06-08-2025</td><td class="table-body">20-08-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">7</td><td class="table-body">Sourav Banerjee</td><td class="table-body">B007</td><td class="table-body">Computer Networks</td><td class="table-body">07-08-2025</td><td class="table-body">21-08-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">8</td><td class="table-body">Kunal Mehta</td><td class="table-body">B008</td><td class="table-body">Software Engineering</td><td class="table-body">08-08-2025</td><td class="table-body">22-08-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">9</td><td class="table-body">Ananya Roy</td><td class="table-body">B009</td><td class="table-body">Artificial Intelligence</td><td class="table-body">09-08-2025</td><td class="table-body">23-08-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">10</td><td class="table-body">Vikram Singh</td><td class="table-body">B010</td><td class="table-body">Machine Learning</td><td class="table-body">10-08-2025</td><td class="table-body">24-08-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">11</td><td class="table-body">Pooja Nair</td><td class="table-body">B011</td><td class="table-body">Compiler Design</td><td class="table-body">11-08-2025</td><td class="table-body">25-08-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">12</td><td class="table-body">Rohit Chatterjee</td><td class="table-body">B012</td><td class="table-body">Linear Algebra</td><td class="table-body">12-08-2025</td><td class="table-body">26-08-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">13</td><td class="table-body">Sneha Kapoor</td><td class="table-body">B013</td><td class="table-body">Probability & Statistics</td><td class="table-body">13-08-2025</td><td class="table-body">27-08-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">14</td><td class="table-body">Abhishek Mishra</td><td class="table-body">B014</td><td class="table-body">Cryptography</td><td class="table-body">14-08-2025</td><td class="table-body">28-08-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">15</td><td class="table-body">Ishita Mukherjee</td><td class="table-body">B015</td><td class="table-body">Human Computer Interaction</td><td class="table-body">15-08-2025</td><td class="table-body">29-08-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">16</td><td class="table-body">Manish Yadav</td><td class="table-body">B016</td><td class="table-body">Numerical Methods</td><td class="table-body">16-08-2025</td><td class="table-body">30-08-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">17</td><td class="table-body">Tanvi Joshi</td><td class="table-body">B017</td><td class="table-body">Information Retrieval</td><td class="table-body">17-08-2025</td><td class="table-body">31-08-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">18</td><td class="table-body">Aditya Kulkarni</td><td class="table-body">B018</td><td class="table-body">Digital Logic</td><td class="table-body">18-08-2025</td><td class="table-body">01-09-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">19</td><td class="table-body">Nandini Ghosh</td><td class="table-body">B019</td><td class="table-body">Pattern Recognition</td><td class="table-body">19-08-2025</td><td class="table-body">02-09-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">20</td><td class="table-body">Siddharth Jain</td><td class="table-body">B020</td><td class="table-body">Theory of Computation</td><td class="table-body">20-08-2025</td><td class="table-body">03-09-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">21</td><td class="table-body">Kritika Bansal</td><td class="table-body">B021</td><td class="table-body">Data Mining</td><td class="table-body">21-08-2025</td><td class="table-body">04-09-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">22</td><td class="table-body">Rakesh Patel</td><td class="table-body">B022</td><td class="table-body">Embedded Systems</td><td class="table-body">22-08-2025</td><td class="table-body">05-09-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">23</td><td class="table-body">Mehul Shah</td><td class="table-body">B023</td><td class="table-body">Computer Graphics</td><td class="table-body">23-08-2025</td><td class="table-body">06-09-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">24</td><td class="table-body">Shreya Iyer</td><td class="table-body">B024</td><td class="table-body">Big Data Analytics</td><td class="table-body">24-08-2025</td><td class="table-body">07-09-2025</td><td class="table-body">Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-
-      <tr><td class="table-body">25</td><td class="table-body">Devraj Sinha</td><td class="table-body">B025</td><td class="table-body">Introduction to Algorithms</td><td class="table-body">25-08-2025</td><td class="table-body">08-09-2025</td><td class="table-body">Not Applicable</td><td class="table-body"><button>Delete</button></td></tr>
-    </tbody>
+        while ($row = mysqli_fetch_assoc($result)) {
+        ?>
+            <tr>
+                <td class="table-body"><?php echo $serial++; ?></td>
+                <td class="table-body"><?php echo $row['student_name']; ?></td>
+                <td class="table-body"><?php echo $row['book_id']; ?></td>
+                <td class="table-body"><?php echo $row['book_name']; ?></td>
+                <td class="table-body"><?php echo $row['issue_date']; ?></td>
+                <td class="table-body"><?php echo $row['return_date']; ?></td>
+                <td class="table-body">
+                    <?php 
+                        echo $row['fine_amount'] ? $row['fine_amount'] : "Not Applicable";
+                    ?>
+                </td>
+                <td class="table-body">
+                    <form method="post">
+                        <input type="hidden" name="issue_id" value="<?php echo $row['id']; ?>">
+                        <button type="submit" name="delete_issue">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        <?php
+        }
+        ?>
+        </tbody>
   </table>
 </div>
 
-    </div><!-- .page -->
+    </div>
 </body>
 
 </html>
