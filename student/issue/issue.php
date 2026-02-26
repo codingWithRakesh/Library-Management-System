@@ -1,5 +1,14 @@
 <?php
+    session_start();
     include "../../db/db.php";
+
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: ../login/login.php");
+        exit();
+    }
+
+    $userId = $_SESSION['user_id'];
+    $userName = $_SESSION['user_name'];
 
     $tableSql = "CREATE TABLE IF NOT EXISTS books (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -50,7 +59,7 @@
             FROM issued_books ib
             JOIN books b ON ib.book_id = b.id
             LEFT JOIN fines f ON ib.id = f.issued_book_id
-            WHERE ib.student_id = 1";
+            WHERE ib.student_id = $userId";
 
     $result = mysqli_query($conn, $joinSql);
     if (!$result) {
@@ -72,7 +81,7 @@
             FROM issued_books ib
             JOIN books b ON ib.book_id = b.id
             LEFT JOIN fines f ON ib.id = f.issued_book_id
-            WHERE ib.student_id = 1 AND b.name LIKE '%$searchTerm%'";
+            WHERE ib.student_id = $userId AND b.name LIKE '%$searchTerm%'";
         
         $result = mysqli_query($conn, $searchSql);
         if (!$result) {
