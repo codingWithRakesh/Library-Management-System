@@ -47,6 +47,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Sign up Page</title>
+    <link rel="icon" href="../../assets/images/logo3.png" type="image/png">
 
     <style>
         /* Modern CSS Reset & Base Styles */
@@ -339,7 +340,6 @@
                 
                 <div class="logo-section">
                     <div class="logo-icon">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
                     </div>
                     Cogie
                 </div>

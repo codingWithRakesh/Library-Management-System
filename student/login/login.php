@@ -1,4 +1,5 @@
 <?php
+    session_start();
     include "../../db/db.php";
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -15,6 +16,10 @@
                 $row = mysqli_fetch_assoc($result);
             
                 if (password_verify($password, $row["password"])) {
+                    $_SESSION['user_id'] = $row['id'];
+                    $_SESSION['user_name'] = $row['name'];
+                    $_SESSION['user_email'] = $row['email'];
+
                     header("Location: ../../home/index.php");
                     exit();
                 } else {
@@ -33,6 +38,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Login Page</title>
+    <link rel="icon" href="../../assets/images/logo3.png" type="image/png">
 
     <style>
         /* Modern CSS Reset & Base Styles */
