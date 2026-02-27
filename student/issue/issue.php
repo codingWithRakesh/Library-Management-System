@@ -1,3 +1,96 @@
+<?php
+    session_start();
+    include "../../db/db.php";
+
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: ../login/login.php");
+        exit();
+    }
+
+    $userId = $_SESSION['user_id'];
+    $userName = $_SESSION['user_name'];
+
+    $tableSql = "CREATE TABLE IF NOT EXISTS books (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        author VARCHAR(255) NOT NULL,
+        category VARCHAR(255) NOT NULL,
+        image_path VARCHAR(255) NOT NULL,
+        pdf_path VARCHAR(255) NULL
+    )";
+
+    $issueTableSql = "CREATE TABLE IF NOT EXISTS issued_books (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        book_id INT NOT NULL,
+        student_id INT NOT NULL,
+        issue_date DATE NOT NULL,
+        return_date DATE NULL,
+        FOREIGN KEY (book_id) REFERENCES books(id),
+        FOREIGN KEY (student_id) REFERENCES students(id)
+    )";
+
+    $fineTableSql = "CREATE TABLE IF NOT EXISTS fines (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        issued_book_id INT NOT NULL,
+        amount DECIMAL(10, 2) NOT NULL,
+        FOREIGN KEY (issued_book_id) REFERENCES issued_books(id)
+    )";
+
+    if (!mysqli_query($conn, $tableSql)) {
+        echo "Error creating books table: " . mysqli_error($conn);
+        exit();
+    }
+    if (!mysqli_query($conn, $issueTableSql)) {
+        echo "Error creating issued_books table: " . mysqli_error($conn);
+        exit();
+    }
+    if (!mysqli_query($conn, $fineTableSql)) {
+        echo "Error creating fines table: " . mysqli_error($conn);
+        exit();
+    }
+
+    $joinSql = "SELECT ib.id AS issue_id,
+            b.id AS book_id,
+            b.name AS book_name,
+            b.category,
+            ib.issue_date,
+            ib.return_date,
+            f.amount AS fine_amount
+            FROM issued_books ib
+            JOIN books b ON ib.book_id = b.id
+            LEFT JOIN fines f ON ib.id = f.issued_book_id
+            WHERE ib.student_id = $userId";
+
+    $result = mysqli_query($conn, $joinSql);
+    if (!$result) {
+        echo "Error fetching issued books: " . mysqli_error($conn);
+        exit();
+    }
+?>
+
+<?php
+    if(isset($_POST['search'])) {
+        $searchTerm = mysqli_real_escape_string($conn, $_POST['q']);
+        $searchSql = "SELECT ib.id AS issue_id,
+            b.id AS book_id,
+            b.name AS book_name,
+            b.category,
+            ib.issue_date,
+            ib.return_date,
+            f.amount AS fine_amount
+            FROM issued_books ib
+            JOIN books b ON ib.book_id = b.id
+            LEFT JOIN fines f ON ib.id = f.issued_book_id
+            WHERE ib.student_id = $userId AND b.name LIKE '%$searchTerm%'";
+        
+        $result = mysqli_query($conn, $searchSql);
+        if (!$result) {
+            echo "Error searching issued books: " . mysqli_error($conn);
+            exit();
+        }
+    }
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -297,9 +390,9 @@
         <div class="page-header">
             <p class="page-title">Welcome to the Library. Browse the collection below or use search.</p>
 
-            <form class="search-form" method="get" action="">
-                <input class="searchInput" name="q" type="text" placeholder="Search books..." />
-                <button class="primary-btn" type="submit">Submit</button>
+            <form class="search-form" method="post" >
+                <input class="searchInput" name="q" type="text" placeholder="Search books by name..." />
+                <button class="primary-btn" type="submit" name="search">Submit</button>
             </form>
         </div>
 
@@ -319,33 +412,33 @@
     </thead>
 
     <tbody>
+        <?php
+            $serialNo = 1;
+            while ($row = mysqli_fetch_assoc($result)) {
+        ?>
       <tr>
-        <td class="table-body">1</td>
-        <td class="table-body">B001</td>
-        <td class="table-body">Introduction to Computer Science</td>
-        <td class="table-body">Science</td>
+        <td class="table-body"><?php echo $serialNo++; ?></td>
+        <td class="table-body"><?php echo $row['book_id']; ?></td>
+        <td class="table-body"><?php echo $row['book_name']; ?></td>
+        <td class="table-body"><?php echo $row['category']; ?></td>
         
-        <td class="table-body">01-08-2025</td>
-        <td class="table-body">15-08-2025</td>
-        <td class="table-body">Not Applicable</td>
+        <td class="table-body"><?php echo $row['issue_date']; ?></td>
+        <td class="table-body"><?php echo $row['return_date']; ?></td>
+        <td class="table-body">
+            <?php 
+                echo $row['fine_amount'] ? $row['fine_amount'] : "Not Applicable";
+            ?>
+        </td>
      </tr>
-
-      <tr><td class="table-body">2</td><td class="table-body">B002</td><td class="table-body">Advanced Mathematics</td><td class="table-body">Math</td><td class="table-body">02-08-2025</td><td class="table-body">16-08-2025</td><td class="table-body">Applicable</td></tr>
-
-      <tr><td class="table-body">3</td><td class="table-body">B003</td><td class="table-body">Discrete Mathematics</td><td class="table-body">Math</td><td class="table-body">03-08-2025</td><td class="table-body">17-08-2025</td><td class="table-body">Not Applicable</td></tr>
-
-      <tr><td class="table-body">4</td><td class="table-body">B004</td><td class="table-body">Data Structures & Algorithms</td><td class="table-body">Programming</td><td class="table-body">04-08-2025</td><td class="table-body">18-08-2025</td><td class="table-body">Applicable</td></tr>
-
-      <tr><td class="table-body">5</td><td class="table-body">B005</td><td class="table-body">Operating Systems</td><td class="table-body">Programming</td><td class="table-body">05-08-2025</td><td class="table-body">19-08-2025</td><td class="table-body">Not Applicable</td></tr>
-
-      <tr><td class="table-body">6</td><td class="table-body">B006</td><td class="table-body">Database System Concepts</td><td class="table-body">Programming</td><td class="table-body">06-08-2025</td><td class="table-body">20-08-2025</td><td class="table-body">Applicable</td></tr>
-
+     <?php
+        }
+     ?>
       
     </tbody>
   </table>
 </div>
 
-    </div><!-- .page -->
+    </div>
 </body>
 
 </html>
