@@ -1,9 +1,9 @@
 <?php
-    include "../../db/db.php";
+include "../../db/db.php";
 ?>
 
 <?php
-    $tableSql = "CREATE TABLE IF NOT EXISTS books (
+$tableSql = "CREATE TABLE IF NOT EXISTS books (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         author VARCHAR(255) NOT NULL,
@@ -12,73 +12,73 @@
         pdf_path VARCHAR(255) NULL
     )";
 
-    if (!mysqli_query($conn, $tableSql)) {
-        echo "Error creating table: " . mysqli_error($conn);
-        exit();
-    }
-    
-    //total books count
-    $totalBooksSql = "SELECT COUNT(*) AS total_books FROM books";
-    $totalBooksResult = mysqli_query($conn, $totalBooksSql);
-    $totalBooks = 0;
-    if ($totalBooksResult && $totalBooksResult->num_rows > 0) {
-        $row = mysqli_fetch_assoc($totalBooksResult);
-        $totalBooks = $row['total_books'];
-    }
+if (!mysqli_query($conn, $tableSql)) {
+    echo "Error creating table: " . mysqli_error($conn);
+    exit();
+}
 
-    //total categories count
-    $totalCategoriesSql = "SELECT COUNT(DISTINCT category) AS total_categories FROM books";
-    $totalCategoriesResult = mysqli_query($conn, $totalCategoriesSql);
-    $totalCategories = 0;
-    if ($totalCategoriesResult && $totalCategoriesResult->num_rows > 0) {
-        $row = mysqli_fetch_assoc($totalCategoriesResult);
-        $totalCategories = $row['total_categories'];
-    }
+//total books count
+$totalBooksSql = "SELECT COUNT(*) AS total_books FROM books";
+$totalBooksResult = mysqli_query($conn, $totalBooksSql);
+$totalBooks = 0;
+if ($totalBooksResult && $totalBooksResult->num_rows > 0) {
+    $row = mysqli_fetch_assoc($totalBooksResult);
+    $totalBooks = $row['total_books'];
+}
+
+//total categories count
+$totalCategoriesSql = "SELECT COUNT(DISTINCT category) AS total_categories FROM books";
+$totalCategoriesResult = mysqli_query($conn, $totalCategoriesSql);
+$totalCategories = 0;
+if ($totalCategoriesResult && $totalCategoriesResult->num_rows > 0) {
+    $row = mysqli_fetch_assoc($totalCategoriesResult);
+    $totalCategories = $row['total_categories'];
+}
 ?>
 
 <?php
-    //all books
-    $allBooksSql = "SELECT * FROM books";
-    $allBooksResult = mysqli_query($conn, $allBooksSql);
+//all books
+$allBooksSql = "SELECT * FROM books";
+$allBooksResult = mysqli_query($conn, $allBooksSql);
+$books = [];
+if ($allBooksResult && $allBooksResult->num_rows > 0) {
+    while ($row = mysqli_fetch_assoc($allBooksResult)) {
+        $books[] = $row;
+    }
+}
+
+//search functionality
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_submit'])) {
+    $searchTerm = $_POST['search'] ?? '';
+    $searchTermEscaped = mysqli_real_escape_string($conn, $searchTerm);
+    $searchSql = "SELECT * FROM books WHERE name LIKE '%$searchTermEscaped%'";
+    $searchResult = mysqli_query($conn, $searchSql);
     $books = [];
-    if ($allBooksResult && $allBooksResult->num_rows > 0) {
-        while ($row = mysqli_fetch_assoc($allBooksResult)) {
+    if ($searchResult && $searchResult->num_rows > 0) {
+        while ($row = mysqli_fetch_assoc($searchResult)) {
             $books[] = $row;
         }
-    }
-
-    //search functionality
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_submit'])) {
-        $searchTerm = $_POST['search'] ?? '';
-        $searchTermEscaped = mysqli_real_escape_string($conn, $searchTerm);
-        $searchSql = "SELECT * FROM books WHERE name LIKE '%$searchTermEscaped%'";
-        $searchResult = mysqli_query($conn, $searchSql);
+    } else {
         $books = [];
-        if ($searchResult && $searchResult->num_rows > 0) {
-            while ($row = mysqli_fetch_assoc($searchResult)) {
-                $books[] = $row;
-            }
-        } else {
-            $books = [];
-        }
     }
+}
 
-    //delete book functionality
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_book_submit'])) {
-        $deleteBookId = $_POST['delete_book_id'] ?? '';
-        if (!empty($deleteBookId)) {
-            $deleteSql = "DELETE FROM books WHERE id='$deleteBookId'";
-            mysqli_query($conn, $deleteSql);
-            header('Location: ' . $_SERVER['PHP_SELF']);
-            exit;
-        }
+//delete book functionality
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_book_submit'])) {
+    $deleteBookId = $_POST['delete_book_id'] ?? '';
+    if (!empty($deleteBookId)) {
+        $deleteSql = "DELETE FROM books WHERE id='$deleteBookId'";
+        mysqli_query($conn, $deleteSql);
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
     }
+}
 ?>
 
 <?php
-    if (isset($_GET['success'])) {
-        echo "<script>alert('Book added successfully');</script>";
-    }
+if (isset($_GET['success'])) {
+    echo "<script>alert('Book added successfully');</script>";
+}
 ?>
 
 <?php
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
     $author = $_POST["author"] ?? '';
     $category = $_POST["category"] ?? '';
 
-    if(empty($name) || empty($author) || empty($category)) {
+    if (empty($name) || empty($author) || empty($category)) {
         echo "All fields are required.";
         exit();
     }
@@ -113,26 +113,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
         echo "Error creating table: " . mysqli_error($conn);
         exit();
     }
-    if(empty($_FILES["image"]["name"])) {
+    if (empty($_FILES["image"]["name"])) {
         echo "Image file is required.";
         exit();
     }
     $imageFileName = $_FILES["image"]["name"] ?? '';
     $imageTmpName = $_FILES["image"]["tmp_name"] ?? '';
-    $targetImagePath = "../../assets/images/" . basename($imageFileName);
+    $targetImagePath = "../../assets/images/" .
+     $imageFileName;
 
     $pdfFileName = $_FILES["pdf"]["name"] ?? '';
     $pdfTmpName = $_FILES["pdf"]["tmp_name"] ?? '';
     $targetPdfPath = "";
 
-    if(!empty($pdfFileName)){
+    if (!empty($pdfFileName)) {
         $targetPdfPath = "../../assets/pdfs/" . basename($pdfFileName);
     }
 
-    if(move_uploaded_file($imageTmpName, $targetImagePath) && ( empty($pdfFileName) || move_uploaded_file($pdfTmpName, $targetPdfPath) )) {
-        $insertSql = "INSERT INTO books (name, author, category, image_path, pdf_path) VALUES ('$name', '$author', '$category', '$targetImagePath', '$targetPdfPath')";
+    if (move_uploaded_file($imageTmpName, $targetImagePath) && (empty($pdfFileName) || move_uploaded_file($pdfTmpName, $targetPdfPath))) {
+        $insertSql = "INSERT INTO books (name, author, category, image_path, pdf_path) VALUES ('$name', '$author', '$category', '$imageFileName', '$targetPdfPath')";
         if (mysqli_query($conn, $insertSql)) {
-            header("Location: ".$_SERVER['PHP_SELF']."?success=1");
+            header("Location: " . $_SERVER['PHP_SELF'] . "?success=1");
             exit();
         } else {
             echo "Error: " . $insertSql . "<br>" . mysqli_error($conn);
@@ -150,6 +151,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <link rel="icon" href="../../assets/images/logo3.png" type="image/png">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap');
 
@@ -284,29 +287,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
             /* make cards equal height */
             margin-bottom: 1.25rem;
         }
-
-        /* base card look */
-        .card {
+        /* force grid items (forms/links) to stretch */
+        .stat-grid > form,
+        .stat-grid > a {
+            display: block;
+            height: 100%;
+        }
+        .stat-grid > a .card {
+            height: 100%;
+        }
+        /* ensure inline forms/buttons fill the grid cell height */
+        .stat-grid .inline-form {
+            height: 100%;
+            display: block;
+        }
+        .stat-grid .inline-form .card {
+            height: 100%;
+        }
+        .stat-grid .inline-form .card-button {
             display: flex;
             flex-direction: column;
             justify-content: center;
-            /* center content vertically */
             align-items: center;
-            min-height: 120px;
-            /* consistent height */
-            padding: 1.25rem 1.25rem;
-            text-align: center;
-            background: var(--c-white);
-            border: 2px solid rgba(219, 206, 165, 0.85);
-            /* soft sand border */
-            border-radius: 14px;
-            box-shadow: 0 8px 18px rgba(43, 36, 24, 0.08);
-            /* soft default shadow */
-            transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-            overflow: hidden;
+            height: 100%;
+            width: 100%;
         }
-
-
 
         /* numbers and labels */
         .card-number {
@@ -355,6 +360,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
             border-style: dashed;
             border-color: var(--c-brown);
             box-shadow: 0 18px 40px rgba(43, 36, 24, 0.14);
+        }
+
+        /* base card look */
+        .card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* center content vertically */
+            align-items: center;
+            min-height: 120px;
+            /* consistent height */
+            padding: 1.25rem 1.25rem;
+            text-align: center;
+            background: var(--c-white);
+            border: 2px solid rgba(219, 206, 165, 0.85);
+            /* soft sand border */
+            border-radius: 14px;
+            box-shadow: 0 8px 18px rgba(43, 36, 24, 0.08);
+            /* soft default shadow */
+            transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+            overflow: hidden;
         }
 
         /* plus icon as span (same visuals as your prior pseudo elements) */
@@ -685,6 +711,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
         }
 
+        /* CSS (place near the other card/grid styles) */
+        .stat-grid .inline-form {
+            height: 100%;
+            display: block;
+        }
+
+        .stat-grid .inline-form .card {
+            height: 100%;
+        }
+    
+
         /* Mobile */
         @media (max-width: 480px) {
             .popup-container {
@@ -726,7 +763,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
 
         <main class="content">
             <section class="stat-grid">
-                <form method="post" class="inline-form" style="display:inline-block;">
+                <form method="post" class="inline-form">
                     <button type="submit" name="open_add_popup" class="card add-card card-button" aria-label="Add books">
                         <span class="plus-icon" aria-hidden="true"></span>
                         <span class="card-label">Add books btn</span>
@@ -744,10 +781,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
                     </p>
                     <p class="card-label">categories</p>
                 </div>
-                <div class="card">
-                    <p class="card-number">10</p>
-                    <p class="card-label">users</p>
-                </div>
+                <a href="../issue/issue.php" style="text-decoration:none;">
+                    <div class="card">
+                        <form method="post" class="inline-form">
+                            <button type="button" class="card-button" aria-label="issue">
+                                <p class="card-number">0</p>
+                                <p class="card-label">issue</p>
+                            </button>
+                        </form>
+                    </div>
+                </a>
             </section>
             <br>
             <section class="list-section">
@@ -793,7 +836,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
-                            
+
                         </tbody>
                     </table>
                 </div>
@@ -803,34 +846,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
 
 
     <?php if ($showPopup): ?>
-  <div class="popup-overlay">
-    <a class="overlay-close" href="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">Close popup</a>
+        <div class="popup-overlay">
+            <a class="overlay-close" href="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">Close popup</a>
 
-    <div class="popup-container">
-      <form class="popup-form" method="post" enctype="multipart/form-data">
+            <div class="popup-container">
+                <form class="popup-form" method="post" enctype="multipart/form-data">
 
-        <label class="form-label">Name</label>
-        <input class="text-input" type="text" name="name" required>
+                    <label class="form-label">Name</label>
+                    <input class="text-input" type="text" name="name" required>
 
-        <label class="form-label">Category</label>
-        <input class="text-input" type="text" name="category" required>
+                    <label class="form-label">Category</label>
+                    <input class="text-input" type="text" name="category" required>
 
-        <label class="form-label">Author</label>
-        <input class="text-input" type="text" name="author" required>
+                    <label class="form-label">Author</label>
+                    <input class="text-input" type="text" name="author" required>
 
-        <label class="file-box" for="image">Click to upload book image</label>
-        <input class="file-input" type="file" name="image" id="image">
+                    <label class="file-box" for="image">Click to upload book image</label>
+                    <input class="file-input" type="file" name="image" id="image">
 
-        <label class="file-box" for="pdf">Click to upload book PDF</label>
-        <input class="file-input" type="file" name="pdf" id="pdf">
+                    <label class="file-box" for="pdf">Click to upload book PDF</label>
+                    <input class="file-input" type="file" name="pdf" id="pdf">
 
-        <button class="submit-btn" type="submit" name="add_book_submit">Submit</button>
+                    <button class="submit-btn" type="submit" name="add_book_submit">Submit</button>
 
-      </form>
-    </div>
+                </form>
+            </div>
 
-  </div>
-<?php endif; ?>
+        </div>
+    <?php endif; ?>
 </body>
 
 </html>
