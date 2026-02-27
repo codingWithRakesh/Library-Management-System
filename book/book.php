@@ -329,6 +329,8 @@ $currentUser = [
             }
         }
     </style>
+    <title>Book Management System</title>
+    
 </head>
 <body>
 
