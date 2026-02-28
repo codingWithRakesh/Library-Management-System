@@ -7,6 +7,14 @@
         exit();
     }
 
+    $checkUserByIdSql = "SELECT id FROM students WHERE id = " . intval($_SESSION['user_id']);
+    $checkResult = mysqli_query($conn, $checkUserByIdSql);
+    if (!$checkResult || mysqli_num_rows($checkResult) === 0) {
+        session_destroy();
+        header("Location: ../login/login.php");
+        exit();
+    }
+
     $userId = $_SESSION['user_id'];
     $userName = $_SESSION['user_name'];
 
