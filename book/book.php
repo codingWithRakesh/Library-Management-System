@@ -1,8 +1,51 @@
 <?php
+    session_start();
     include "../db/db.php";
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: ../student/login/login.php");
+        exit();
+    }
+
+    $userId = $_SESSION['user_id'];
+    $userName = $_SESSION['user_name'];
+
+    $bookId = $_GET['id'] ?? '';
+    $category = $_GET['category'] ?? '';
+
+    $fetchBookSql = "SELECT * FROM books WHERE id='$bookId'";
+    $bookResult = mysqli_query($conn, $fetchBookSql);
+    if ($bookResult->num_rows > 0) {
+        $book = mysqli_fetch_assoc($bookResult);
+    } else {
+        echo "Book not found.";
+        exit();
+    }
+
+    $checkBorrowedSql = "SELECT * FROM issued_books WHERE book_id='$bookId' AND student_id='$userId' AND return_date >= CURDATE()";
+    $borrowedResult = mysqli_query($conn, $checkBorrowedSql);
+    $isBorrowed = $borrowedResult && $borrowedResult->num_rows > 0;
+
+    $fetchBookByCategorySql = "SELECT * FROM books WHERE category='$category' AND id != '$bookId' LIMIT 4";
+    $booksByCategoryResult = mysqli_query($conn, $fetchBookByCategorySql);
+    if ($booksByCategoryResult->num_rows > 0) {
+        $suggestedBooks = [];
+        while ($row = mysqli_fetch_assoc($booksByCategoryResult)) {
+            $suggestedBooks[] = [
+                "id" => $row['id'],
+                "title" => $row['name'] ?? 'Unknown Title',
+                "author" => $row['author'] ?? 'Unknown Author',
+                "category" => $row['category'] ?? 'Unknown Category',
+                "image" => !empty($row['image_path']) ? "../assets/images/" . $row['image_path'] : "https://covers.openlibrary.org/b/id/8259449-L.jpg"
+            ];
+        }
+    } else {
+        $suggestedBooks = [];
+    }
+
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["borrow_book"])) {
         $bookId = $_POST["bookId"] ?? '';
-        $studentId = $_POST["studentId"] ?? '';
+        $studentId = $_SESSION['user_id'];
 
         if(empty($bookId) || empty($studentId)) {
             echo "Book ID and Student ID are required.";
@@ -13,17 +56,6 @@
         $result = mysqli_query($conn, $sql);
 
         if ($result->num_rows > 0) {
-            $book = mysqli_fetch_assoc($result);
-            echo "<h3>Book Details:</h3>";
-            echo "Name: " . $book["name"] . "<br>";
-            echo "Author: " . $book["author"] . "<br>";
-            echo "Category: " . $book["category"] . "<br>";
-            if (!empty($book["pdf_path"])) {
-                echo "<a href='" . $book["pdf_path"] . "' target='_blank'>View PDF</a><br>";
-            }
-            if (!empty($book["image_path"])) {
-                echo "<img src='" . $book["image_path"] . "' alt='Book Image' style='max-width:200px;'><br>";
-            }
 
             $issueTableSql = "CREATE TABLE IF NOT EXISTS issued_books (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -44,7 +76,9 @@
                 $returnDate = date('Y-m-d', strtotime('+7 days'));
                 $sqlUpdate = "UPDATE issued_books SET return_date = '$returnDate' WHERE book_id = '$bookId' AND student_id = '$studentId' ORDER BY id DESC LIMIT 1";
                 mysqli_query($conn, $sqlUpdate);
+                $isBorrowed = true;
                 echo "Book issued successfully. Return date: " . $returnDate;
+                header("Refresh: 2; url=" . $_SERVER['REQUEST_URI']);
             } else {
                 echo "Error issuing book: " . mysqli_error($conn);
             }
@@ -55,38 +89,14 @@
 ?>
 
 <?php
-// Mock Data: Added "pdf_link" to simulate a path to your PDF file
+$dbImage = $book["image_path"] ?? "";
 $mainBook = [
-    "title" => "The Shadow of the Wind",
-    "author" => "Carlos Ruiz Zafón",
+    "title" => $book['name'] ?? 'Unknown Title',
+    "author" => $book['author'] ?? 'Unknown Author',
     "description" => "A mesmerizing tale of a young boy's quest to protect a mysterious book in post-war Barcelona. Hidden deep in the city is the Cemetery of Forgotten Books, a library of obscure and forgotten titles. It is a story weaving romance, mystery, and magic.",
-    "image" => "https://covers.openlibrary.org/b/id/8259449-L.jpg",
-    "category" => "Historical Mystery",
-    "pdf_link" => "sample_book.pdf" // <-- Point this to your actual PDF file path
-];
-
-// Mock Data for suggestions based on the same category
-$suggestedBooks = [
-    [
-        "title" => "The Name of the Rose", 
-        "author" => "Umberto Eco", 
-        "image" => "https://covers.openlibrary.org/b/id/8259449-L.jpg"
-    ],
-    [
-        "title" => "The Thirteenth Tale", 
-        "author" => "Diane Setterfield", 
-        "image" => "https://covers.openlibrary.org/b/id/8259449-L.jpg"
-    ],
-    [
-        "title" => "The Book Thief", 
-        "author" => "Markus Zusak", 
-        "image" => "https://covers.openlibrary.org/b/id/8259449-L.jpg"
-    ],
-    [
-        "title" => "Foucault's Pendulum", 
-        "author" => "Umberto Eco", 
-        "image" => "https://covers.openlibrary.org/b/id/8259449-L.jpg"
-    ]
+    "image" => !empty($dbImage) ? "../assets/images/" . $dbImage : "https://covers.openlibrary.org/b/id/8259449-L.jpg",
+    "category" => $book['category'] ?? 'Unknown Category',
+    "pdf_link" => $book['pdf_path'] ? "../assets/pdfs/" . $book['pdf_path'] : ""
 ];
 
 // Mock User Data
@@ -356,8 +366,18 @@ $currentUser = [
             <p><?php echo $mainBook['description']; ?></p>
             
             <div class="actions">
-                <button class="btn btn-borrow">Borrow Book</button>
-                <a href="<?php echo $mainBook['pdf_link']; ?>" target="_blank" class="btn btn-pdf">Read PDF</a>
+                <form method="post">
+                    <input type="hidden" name="bookId" value="<?php echo $bookId; ?>">
+                    <button class="btn btn-borrow" name="borrow_book" <?php echo $isBorrowed ? 'disabled' : ''; ?>><?php echo $isBorrowed ? 'Borrowed' : 'Borrow Book'; ?></button>
+                </form>
+                <?php if (!empty($mainBook['pdf_link'])): ?>
+                    <a href="<?php echo htmlspecialchars($mainBook['pdf_link'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" class="btn btn-pdf">
+                        View PDF
+                    </a>
+                <?php else: ?>
+                    <span style="color: var(--dark-brown); font-style: italic;">PDF not available</span>
+                <?php endif; ?>
+                
             </div>
         </div>
     </div>
@@ -365,11 +385,11 @@ $currentUser = [
     <h2 class="suggestions-title">More in <?php echo $mainBook['category']; ?></h2>
     <div class="suggestions-grid">
         <?php foreach ($suggestedBooks as $book): ?>
-            <div class="suggestion-card">
+            <a class="suggestion-card" href="../book/book.php?id=<?php echo urlencode($book['id']); ?>&&category=<?php echo urlencode($book['category']); ?>" style="text-decoration: none; color: inherit;">
                 <img src="<?php echo $book['image']; ?>" alt="Cover of <?php echo $book['title']; ?>">
                 <h4><?php echo $book['title']; ?></h4>
                 <p><?php echo $book['author']; ?></p>
-            </div>
+            </a>
         <?php endforeach; ?>
     </div>
 </div>
