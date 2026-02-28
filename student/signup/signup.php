@@ -146,7 +146,7 @@
         /* Right Login Side */
         .login-side {
             flex: 1;
-            background: #fff;
+            background: #ece7d1;
             display: flex;
             flex-direction: column;
             padding: 60px;
