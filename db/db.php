@@ -1,5 +1,5 @@
 <?php
-$servername = "localhost:3307";
+$servername = "localhost";
 $username = "root";
 $password = "";
 $dbname = "liberary_management_system";
@@ -19,4 +19,5 @@ if (!$conn) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
-
+echo "<script>alert('Connected successfully to the database.');</script>";
+?>
