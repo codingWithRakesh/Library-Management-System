@@ -93,23 +93,12 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Issue Book Management System</title>
-    <link rel="icon" href="../../assets/images/logo3.png" type="image/png">
-
-</head>
-<body>
-    <h2>Issue Book Management System</h2>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Library — Books List for user</title>
+    <title>Issue Book Management System</title>
+    <link rel="icon" href="../../assets/images/logo3.png" type="image/png">
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap');
@@ -137,18 +126,7 @@
         }
 
 
-        /* navbar: copied from previous page */
-        .main-navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            background: var(--c-brown);
-            color: var(--c-linen);
-            padding: 1rem 1.5rem;
-            border-radius: 0 0 16px 16px;
-            box-shadow: 0 10px 24px rgba(43, 36, 24, 0.18);
-        }
+       
 
         .brand-group {
             display: flex;
@@ -339,6 +317,81 @@
             color: var(--c-linen);
         }
 
+         header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 40px;
+            background-color: var(--header-bg);
+            border-bottom: 1px solid rgba(138, 118, 80, 0.2); 
+        }
+
+        .logo {
+            font-family: "Times New Roman", serif;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--secondary-color);
+        }
+        
+        .logo span { background: var(--secondary-color); color: #fff; padding: 0 5px; border-radius: 2px; }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            margin-right: auto;
+            margin-left: 30px;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1px solid var(--secondary-color);
+            border-radius: 3px;
+            overflow: hidden;
+            width: 400px;
+            margin: 0 20px;
+        }
+
+        .search-select {
+            background: #fdfdfd;
+            border: none;
+            padding: 8px;
+            border-right: 1px solid #ccc;
+            font-size: 13px;
+            color: #555;
+            outline: none;
+        }
+
+        .search-input {
+            border: none;
+            padding: 8px;
+            flex-grow: 1;
+            outline: none;
+        }
+
+        .search-btn {
+            background: none;
+            border: none;
+            outline: none;
+            padding: 0;
+        }
+
+        .search-icon {
+            padding: 8px 12px;
+            color: var(--secondary-color);
+            cursor: pointer;
+        }
+        
+        .search-icon:hover { background: #eee; }
+
+
         /* responsive tweaks */
         @media (max-width:980px) {
             .table-wrap {
@@ -365,26 +418,27 @@
 
 <body>
 
-    <div class="page">
+<header>
+        <div class="logo">
+            <i class="fa-solid fa-book-open" style="margin-right:5px; color: var(--secondary-color);"></i>
+            LIBRARY
+        </div>
+        
+      
 
-        <!-- NAVBAR (exact from previous) -->
-        <nav class="main-navbar">
-            <div class="brand-group">
-                <div class="logo-frame">
-                    <!-- replace src with your logo path -->
-                    <img src="../../assets/images/logo.png" alt="Logo">
-                </div>
-                <h1 class="brand-name">Dashboard</h1>
-            </div>
+        <form class="search-bar" method="GET" action="?">
+            <select name="category_filter" class="search-select">
+                <option>All</option>
+                <option>Category</option>
+                <option>Author</option>
+            </select>
+            <input type="text" name="search" class="search-input" placeholder="Search (e.g., 'Python' or 'Science')" value="<?php echo htmlspecialchars($searchQuery); ?>" required>
+            <button type="submit" class="search-btn">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            </button>
+        </form>
+    </header>
 
-            <div class="nav-actions">
-                <h4 class="nav-username">CYRUS</h4>
-                <div class="avatar-frame">
-                    <img src="../../assets/images/profile3.png" alt="Profile">
-                </div>
-                <button class="exit-btn" type="button">Exit</button>
-            </div>
-        </nav>
 
         <!-- header + search -->
         <div class="page-header">
