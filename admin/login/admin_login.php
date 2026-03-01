@@ -381,7 +381,7 @@
                 
 
                 <div class="footer-text">
-                     User sign in? <a href="#">Sign In</a>
+                     User sign in? <a href="../../student/login/login.php">Sign In</a>
                 </div>
             </div>
         </div>

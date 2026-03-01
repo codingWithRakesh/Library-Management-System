@@ -383,7 +383,7 @@
                 
 
                 <div class="footer-text">
-                     Already have an account? <a href="#">Sign In</a>
+                     Already have an account? <a href="../login/login.php">Sign In</a>
                 </div>
             </div>
         </div>
