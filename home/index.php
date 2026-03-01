@@ -1,5 +1,22 @@
 <?php
+    session_start();
     include "../db/db.php";
+
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: ../student/login/login.php");
+        exit();
+    }
+
+    $checkUserByIdSql = "SELECT id FROM students WHERE id = " . intval($_SESSION['user_id']);
+    $checkResult = mysqli_query($conn, $checkUserByIdSql);
+    if (!$checkResult || mysqli_num_rows($checkResult) === 0) {
+        session_destroy();
+        header("Location: ../login/login.php");
+        exit();
+    }
+
+    $userId = $_SESSION['user_id'];
+    $userName = $_SESSION['user_name'];
 
     $allbooksSql = "SELECT * FROM books";
     $allBooksResult = mysqli_query($conn, $allbooksSql);
@@ -329,7 +346,7 @@
         </div>
         
         <nav class="nav-links">
-            <a href="#">My Books <i class="fa-solid fa-caret-down"></i></a>
+            <a href="../student/issue/issue.php">My Books <i class="fa-solid fa-caret-down"></i></a>
         </nav>
 
         <form class="search-bar" method="GET" action="?">
@@ -365,9 +382,11 @@
                             <div class="book-card">
                                 <img src="<?php echo htmlspecialchars($book['image']); ?>" alt="<?php echo htmlspecialchars($book['title']); ?>" class="book-cover">
                                 
-                                <button class="action-btn <?php echo htmlspecialchars($book['btn_class']); ?>">
+                                <a href="../book/book.php?id=<?php echo urlencode($book['id']); ?>&&category=<?php echo urlencode($categoryName); ?>" style="text-decoration: none; color: inherit;">
+                                    <button class="action-btn <?php echo htmlspecialchars($book['btn_class']); ?>">
                                     <?php echo htmlspecialchars($book['status']); ?>
                                 </button>
+                                </a>
                             </div>
                             <?php endforeach; ?>
                         </div>

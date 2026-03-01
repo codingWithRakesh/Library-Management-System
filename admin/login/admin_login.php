@@ -1,4 +1,5 @@
 <?php
+    session_start();
     include "../../db/db.php";
     $username = "admin";
     $password = "admin123";
@@ -32,6 +33,9 @@
             $insertSql = "INSERT INTO admins (username, password) VALUES ('" . mysqli_real_escape_string($conn, $inputUsername) . "', '$hashedPassword')";
             mysqli_query($conn, $insertSql);
         }
+
+        $_SESSION['admin_username'] = $inputUsername;
+        $_SESSION['admin_logged_in'] = true;
 
         header("Location: ../dashboard/dashboard.php");
         exit();
