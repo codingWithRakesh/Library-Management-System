@@ -38,7 +38,7 @@
         id INT AUTO_INCREMENT PRIMARY KEY,
         issued_book_id INT NOT NULL,
         amount DECIMAL(10, 2) NOT NULL,
-        FOREIGN KEY (issued_book_id) REFERENCES issued_books(id)
+        FOREIGN KEY (issued_book_id) REFERENCES issued_books(id) ON DELETE CASCADE
     )";
 
     if (!mysqli_query($conn, $createStudent)) {
@@ -56,6 +56,31 @@
     if (!mysqli_query($conn, $fineTableSql)) {
         echo "Error creating fines table: " . mysqli_error($conn);
         exit();
+    }
+
+    // Calculate and update fines
+    $overdueSql = "SELECT id, return_date FROM issued_books WHERE return_date < CURDATE()";
+    $overdueResult = mysqli_query($conn, $overdueSql);
+    
+    if ($overdueResult) {
+        while ($overdueRow = mysqli_fetch_assoc($overdueResult)) {
+            $issuedBookId = $overdueRow['id'];
+            $returnDate = $overdueRow['return_date'];
+            
+            $daysOverdue = floor((strtotime(date('Y-m-d')) - strtotime($returnDate)) / (60 * 60 * 24));
+            $fineAmount = $daysOverdue * 10;
+            
+            $checkFineSql = "SELECT id FROM fines WHERE issued_book_id = $issuedBookId";
+            $fineExists = mysqli_query($conn, $checkFineSql);
+            
+            if (mysqli_num_rows($fineExists) > 0) {
+                $updateFineSql = "UPDATE fines SET amount = $fineAmount WHERE issued_book_id = $issuedBookId";
+                mysqli_query($conn, $updateFineSql);
+            } else {
+                $insertFineSql = "INSERT INTO fines (issued_book_id, amount) VALUES ($issuedBookId, $fineAmount)";
+                mysqli_query($conn, $insertFineSql);
+            }
+        }
     }
 
     $joinSql = "SELECT issued_books.id,
@@ -79,16 +104,18 @@
 
 <?php
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_issue'])) {
-        $issueId = $_POST['issue_id'] ?? '';
+        $issueId = intval($_POST['issue_id'] ?? 0);
 
         if (empty($issueId)) {
             echo "Issue ID is required for deletion.";
             exit();
         }
 
-        $deleteSql = "DELETE FROM issued_books WHERE id='$issueId'";
+        $deleteFineSql = "DELETE FROM fines WHERE issued_book_id = $issueId";
+        mysqli_query($conn, $deleteFineSql);
+
+        $deleteSql = "DELETE FROM issued_books WHERE id = $issueId";
         if (mysqli_query($conn, $deleteSql)) {
-            echo "Issue record deleted successfully.";
             header("Location: issue.php");
             exit();
         } else {

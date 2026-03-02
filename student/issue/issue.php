@@ -41,7 +41,7 @@
         id INT AUTO_INCREMENT PRIMARY KEY,
         issued_book_id INT NOT NULL,
         amount DECIMAL(10, 2) NOT NULL,
-        FOREIGN KEY (issued_book_id) REFERENCES issued_books(id)
+        FOREIGN KEY (issued_book_id) REFERENCES issued_books(id) ON DELETE CASCADE
     )";
 
     if (!mysqli_query($conn, $tableSql)) {
@@ -55,6 +55,31 @@
     if (!mysqli_query($conn, $fineTableSql)) {
         echo "Error creating fines table: " . mysqli_error($conn);
         exit();
+    }
+
+    // Calculate and update fines 
+    $overdueStudentSql = "SELECT id, return_date FROM issued_books WHERE student_id = $userId AND return_date < CURDATE()";
+    $overdueStudentResult = mysqli_query($conn, $overdueStudentSql);
+    
+    if ($overdueStudentResult) {
+        while ($overdueRow = mysqli_fetch_assoc($overdueStudentResult)) {
+            $issuedBookId = $overdueRow['id'];
+            $returnDate = $overdueRow['return_date'];
+            
+            $daysOverdue = floor((strtotime(date('Y-m-d')) - strtotime($returnDate)) / (60 * 60 * 24));
+            $fineAmount = $daysOverdue * 10;
+            
+            $checkFineSql = "SELECT id FROM fines WHERE issued_book_id = $issuedBookId";
+            $fineExists = mysqli_query($conn, $checkFineSql);
+            
+            if (mysqli_num_rows($fineExists) > 0) {
+                $updateFineSql = "UPDATE fines SET amount = $fineAmount WHERE issued_book_id = $issuedBookId";
+                mysqli_query($conn, $updateFineSql);
+            } else {
+                $insertFineSql = "INSERT INTO fines (issued_book_id, amount) VALUES ($issuedBookId, $fineAmount)";
+                mysqli_query($conn, $insertFineSql);
+            }
+        }
     }
 
     $joinSql = "SELECT ib.id AS issue_id,
