@@ -279,7 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
         }
 
         .content {
-            padding:15 1rem;
+            padding:2rem 1rem;
         }
 
         /* grid containing the cards */
