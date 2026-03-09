@@ -1,21 +1,21 @@
 <?php
-    session_start();
-    include "../../db/db.php";
-    if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-        header("Location: ../login/admin_login.php");
-        exit();
-    }
+session_start();
+include "../../db/db.php";
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    header("Location: ../login/admin_login.php");
+    exit();
+}
 ?>
 
 <?php
-    $createStudent = "CREATE TABLE IF NOT EXISTS students (
+$createStudent = "CREATE TABLE IF NOT EXISTS students (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL
     )";
 
-    $tableSql = "CREATE TABLE IF NOT EXISTS books (
+$tableSql = "CREATE TABLE IF NOT EXISTS books (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         author VARCHAR(255) NOT NULL,
@@ -24,7 +24,7 @@
         pdf_path VARCHAR(255) NULL
     )";
 
-    $issueTableSql = "CREATE TABLE IF NOT EXISTS issued_books (
+$issueTableSql = "CREATE TABLE IF NOT EXISTS issued_books (
         id INT AUTO_INCREMENT PRIMARY KEY,
         book_id INT NOT NULL,
         student_id INT NOT NULL,
@@ -34,102 +34,56 @@
         FOREIGN KEY (student_id) REFERENCES students(id)
     )";
 
-    $fineTableSql = "CREATE TABLE IF NOT EXISTS fines (
+$fineTableSql = "CREATE TABLE IF NOT EXISTS fines (
         id INT AUTO_INCREMENT PRIMARY KEY,
         issued_book_id INT NOT NULL,
         amount DECIMAL(10, 2) NOT NULL,
         FOREIGN KEY (issued_book_id) REFERENCES issued_books(id) ON DELETE CASCADE
     )";
 
-    if (!mysqli_query($conn, $createStudent)) {
-        echo "Error creating students table: " . mysqli_error($conn);
-        exit();
-    }
-    if (!mysqli_query($conn, $tableSql)) {
-        echo "Error creating books table: " . mysqli_error($conn);
-        exit();
-    }
-    if (!mysqli_query($conn, $issueTableSql)) {
-        echo "Error creating issued_books table: " . mysqli_error($conn);
-        exit();
-    }
-    if (!mysqli_query($conn, $fineTableSql)) {
-        echo "Error creating fines table: " . mysqli_error($conn);
-        exit();
-    }
+if (!mysqli_query($conn, $createStudent)) {
+    echo "Error creating students table: " . mysqli_error($conn);
+    exit();
+}
+if (!mysqli_query($conn, $tableSql)) {
+    echo "Error creating books table: " . mysqli_error($conn);
+    exit();
+}
+if (!mysqli_query($conn, $issueTableSql)) {
+    echo "Error creating issued_books table: " . mysqli_error($conn);
+    exit();
+}
+if (!mysqli_query($conn, $fineTableSql)) {
+    echo "Error creating fines table: " . mysqli_error($conn);
+    exit();
+}
 
-    // Calculate and update fines
-    $overdueSql = "SELECT id, return_date FROM issued_books WHERE return_date < CURDATE()";
-    $overdueResult = mysqli_query($conn, $overdueSql);
-    
-    if ($overdueResult) {
-        while ($overdueRow = mysqli_fetch_assoc($overdueResult)) {
-            $issuedBookId = $overdueRow['id'];
-            $returnDate = $overdueRow['return_date'];
-            
-            $daysOverdue = floor((strtotime(date('Y-m-d')) - strtotime($returnDate)) / (60 * 60 * 24));
-            $fineAmount = $daysOverdue * 10;
-            
-            $checkFineSql = "SELECT id FROM fines WHERE issued_book_id = $issuedBookId";
-            $fineExists = mysqli_query($conn, $checkFineSql);
-            
-            if (mysqli_num_rows($fineExists) > 0) {
-                $updateFineSql = "UPDATE fines SET amount = $fineAmount WHERE issued_book_id = $issuedBookId";
-                mysqli_query($conn, $updateFineSql);
-            } else {
-                $insertFineSql = "INSERT INTO fines (issued_book_id, amount) VALUES ($issuedBookId, $fineAmount)";
-                mysqli_query($conn, $insertFineSql);
-            }
-        }
-    }
+// Calculate and update fines
+$overdueSql = "SELECT id, return_date FROM issued_books WHERE return_date < CURDATE()";
+$overdueResult = mysqli_query($conn, $overdueSql);
 
-    $joinSql = "SELECT issued_books.id,
-            students.name AS student_name,
-            books.id AS book_id,
-            books.name AS book_name,
-            issued_books.issue_date,
-            issued_books.return_date,
-            fines.amount AS fine_amount
-            FROM issued_books
-            JOIN students ON issued_books.student_id = students.id
-            JOIN books ON issued_books.book_id = books.id
-            LEFT JOIN fines ON issued_books.id = fines.issued_book_id";
+if ($overdueResult) {
+    while ($overdueRow = mysqli_fetch_assoc($overdueResult)) {
+        $issuedBookId = $overdueRow['id'];
+        $returnDate = $overdueRow['return_date'];
 
-    $result = mysqli_query($conn, $joinSql);
-    if (!$result) {
-        echo "Error fetching issued books: " . mysqli_error($conn);
-        exit();
-    }
-?>
+        $daysOverdue = floor((strtotime(date('Y-m-d')) - strtotime($returnDate)) / (60 * 60 * 24));
+        $fineAmount = $daysOverdue * 10;
 
-<?php
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_issue'])) {
-        $issueId = intval($_POST['issue_id'] ?? 0);
+        $checkFineSql = "SELECT id FROM fines WHERE issued_book_id = $issuedBookId";
+        $fineExists = mysqli_query($conn, $checkFineSql);
 
-        if (empty($issueId)) {
-            echo "Issue ID is required for deletion.";
-            exit();
-        }
-
-        $deleteFineSql = "DELETE FROM fines WHERE issued_book_id = $issueId";
-        mysqli_query($conn, $deleteFineSql);
-
-        $deleteSql = "DELETE FROM issued_books WHERE id = $issueId";
-        if (mysqli_query($conn, $deleteSql)) {
-            header("Location: issue.php");
-            exit();
+        if (mysqli_num_rows($fineExists) > 0) {
+            $updateFineSql = "UPDATE fines SET amount = $fineAmount WHERE issued_book_id = $issuedBookId";
+            mysqli_query($conn, $updateFineSql);
         } else {
-            echo "Error deleting issue record: " . mysqli_error($conn);
+            $insertFineSql = "INSERT INTO fines (issued_book_id, amount) VALUES ($issuedBookId, $fineAmount)";
+            mysqli_query($conn, $insertFineSql);
         }
     }
-?>
+}
 
-<?php
-    if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
-        $searchTerm = $_POST['q'] ?? '';
-
-        if (empty($searchTerm)) {
-            $searchSql = "SELECT issued_books.id,
+$joinSql = "SELECT issued_books.id,
             students.name AS student_name,
             books.id AS book_id,
             books.name AS book_name,
@@ -140,9 +94,55 @@
             JOIN students ON issued_books.student_id = students.id
             JOIN books ON issued_books.book_id = books.id
             LEFT JOIN fines ON issued_books.id = fines.issued_book_id";
-        }
 
+$result = mysqli_query($conn, $joinSql);
+if (!$result) {
+    echo "Error fetching issued books: " . mysqli_error($conn);
+    exit();
+}
+?>
+
+<?php
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_issue'])) {
+    $issueId = intval($_POST['issue_id'] ?? 0);
+
+    if (empty($issueId)) {
+        echo "Issue ID is required for deletion.";
+        exit();
+    }
+
+    $deleteFineSql = "DELETE FROM fines WHERE issued_book_id = $issueId";
+    mysqli_query($conn, $deleteFineSql);
+
+    $deleteSql = "DELETE FROM issued_books WHERE id = $issueId";
+    if (mysqli_query($conn, $deleteSql)) {
+        header("Location: issue.php");
+        exit();
+    } else {
+        echo "Error deleting issue record: " . mysqli_error($conn);
+    }
+}
+?>
+
+<?php
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
+    $searchTerm = $_POST['q'] ?? '';
+
+    if (empty($searchTerm)) {
         $searchSql = "SELECT issued_books.id,
+            students.name AS student_name,
+            books.id AS book_id,
+            books.name AS book_name,
+            issued_books.issue_date,
+            issued_books.return_date,
+            fines.amount AS fine_amount
+            FROM issued_books
+            JOIN students ON issued_books.student_id = students.id
+            JOIN books ON issued_books.book_id = books.id
+            LEFT JOIN fines ON issued_books.id = fines.issued_book_id";
+    }
+
+    $searchSql = "SELECT issued_books.id,
             students.name AS student_name,
             books.id AS book_id,
             books.name AS book_name,
@@ -155,12 +155,12 @@
             LEFT JOIN fines ON issued_books.id = fines.issued_book_id
             WHERE students.name LIKE '%$searchTerm%' OR books.name LIKE '%$searchTerm%'";
 
-        $result = mysqli_query($conn, $searchSql);
-        if (!$result) {
-            echo "Error searching issued books: " . mysqli_error($conn);
-            exit();
-        }
+    $result = mysqli_query($conn, $searchSql);
+    if (!$result) {
+        echo "Error searching issued books: " . mysqli_error($conn);
+        exit();
     }
+}
 ?>
 
 <!DOCTYPE html>
@@ -210,11 +210,11 @@
             justify-content: space-between;
             align-items: center;
             gap: 1rem;
-            background: var(--c-brown);
-            color: var(--c-linen);
             padding: 1rem 1.5rem;
-            border-radius: 0 0 16px 16px;
-            box-shadow: 0 10px 24px rgba(43, 36, 24, 0.18);
+            background: var(--c-sand);
+            color: var(--c-brown);
+            padding: 1rem 1.5rem;
+            border: 2px solid var(--c-linen);
         }
 
         .brand-group {
@@ -279,8 +279,8 @@
 
         .exit-btn {
             background: transparent;
-            color: var(--c-linen);
-            border: 2px solid var(--c-linen);
+            color: var(--c-brown);
+            border: 2px solid var(--c-brown);
             padding: .45rem .75rem;
             border-radius: 50px;
             font-weight: 700;
@@ -439,7 +439,7 @@
             <div class="brand-group">
                 <div class="logo-frame">
                     <!-- replace src with your logo path -->
-                    <img src="../../assets/images/OOP.jpeg" alt="Logo">
+                    <img src="../../assets/images/logo3.png" alt="Logo">
                 </div>
                 <h1 class="brand-name">Admin Dashboard</h1>
             </div>
@@ -465,51 +465,51 @@
 
         <!-- TABLE -->
         <div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <th class="table-head">Serial no.</th>
-        <th class="table-head">User name</th>
-        <th class="table-head">Book ID</th>
-        <th class="table-head">Book Name</th>
-        <th class="table-head">Issue Date</th>
-        <th class="table-head">Last Date</th>
-        <th class="table-head">Fine</th>
-        <th class="table-head">Delete</th>
-      </tr>
-    </thead>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="table-head">Serial no.</th>
+                        <th class="table-head">User name</th>
+                        <th class="table-head">Book ID</th>
+                        <th class="table-head">Book Name</th>
+                        <th class="table-head">Issue Date</th>
+                        <th class="table-head">Last Date</th>
+                        <th class="table-head">Fine</th>
+                        <th class="table-head">Delete</th>
+                    </tr>
+                </thead>
 
-    <tbody>
-        <?php
-        $serial = 1;
+                <tbody>
+                    <?php
+                    $serial = 1;
 
-        while ($row = mysqli_fetch_assoc($result)) {
-        ?>
-            <tr>
-                <td class="table-body"><?php echo $serial++; ?></td>
-                <td class="table-body"><?php echo $row['student_name']; ?></td>
-                <td class="table-body"><?php echo $row['book_id']; ?></td>
-                <td class="table-body"><?php echo $row['book_name']; ?></td>
-                <td class="table-body"><?php echo $row['issue_date']; ?></td>
-                <td class="table-body"><?php echo $row['return_date']; ?></td>
-                <td class="table-body">
-                    <?php 
-                        echo $row['fine_amount'] ? $row['fine_amount'] : "Not Applicable";
+                    while ($row = mysqli_fetch_assoc($result)) {
                     ?>
-                </td>
-                <td class="table-body">
-                    <form method="post">
-                        <input type="hidden" name="issue_id" value="<?php echo $row['id']; ?>">
-                        <button type="submit" name="delete_issue">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        <?php
-        }
-        ?>
-        </tbody>
-  </table>
-</div>
+                        <tr>
+                            <td class="table-body"><?php echo $serial++; ?></td>
+                            <td class="table-body"><?php echo $row['student_name']; ?></td>
+                            <td class="table-body"><?php echo $row['book_id']; ?></td>
+                            <td class="table-body"><?php echo $row['book_name']; ?></td>
+                            <td class="table-body"><?php echo $row['issue_date']; ?></td>
+                            <td class="table-body"><?php echo $row['return_date']; ?></td>
+                            <td class="table-body">
+                                <?php
+                                echo $row['fine_amount'] ? $row['fine_amount'] : "Not Applicable";
+                                ?>
+                            </td>
+                            <td class="table-body">
+                                <form method="post">
+                                    <input type="hidden" name="issue_id" value="<?php echo $row['id']; ?>">
+                                    <button type="submit" name="delete_issue">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
 
     </div>
 </body>

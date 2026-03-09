@@ -196,11 +196,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
             align-items: center;
             justify-content: space-between;
             gap: 1.5rem;
-            background: var(--c-brown);
-            color: var(--c-linen);
+            background: var(--c-sand);
+            color: var(--c-brown);
             padding: 1rem 1.5rem;
-            border-radius: 0 0 16px 16px;
-            box-shadow: 0 10px 24px rgba(43, 36, 24, 0.18);
+            border: 2px solid var(--c-linen);
         }
 
         .brand-group {
@@ -264,8 +263,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
 
         .exit-btn {
             background: transparent;
-            color: var(--c-linen);
-            border: 2px solid var(--c-linen);
+            color: var(--c-brown);
+            border: 2px solid var(--c-brown);
             padding: 0.5rem 0.85rem;
             border-radius: 50px;
             font-weight: 700;
@@ -280,7 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
         }
 
         .content {
-            padding-top: 2rem;
+            padding:15 1rem;
         }
 
         /* grid containing the cards */
@@ -752,7 +751,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
         <nav class="main-navbar">
             <div class="brand-group">
                 <div class="logo-frame">
-                    <img src="../../assets/images/OOP.jpeg" alt="Logo">
+                    <img src="../../assets/images/logo3.png" alt="Logo">
                 </div>
                 <h1 class="brand-name">Admin Dashboard</h1>
             </div>
