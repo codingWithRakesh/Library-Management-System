@@ -757,7 +757,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
             </div>
 
             <div class="nav-actions">
-                <h4 class="nav-username">CYRUS</h4>
+                <h4 class="nav-username">ADMIN</h4>
                 <div class="avatar-frame">
                     <img src="../../assets/images/profile3.png" alt="Profile">
                 </div>
@@ -770,27 +770,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
                 <form method="post" class="inline-form">
                     <button type="submit" name="open_add_popup" class="card add-card card-button" aria-label="Add books">
                         <span class="plus-icon" aria-hidden="true"></span>
-                        <span class="card-label">Add books btn</span>
+                        <span class="card-label">Add books</span>
                     </button>
                 </form>
                 <div class="card">
                     <p class="card-number">
                         <?php echo $totalBooks; ?>
                     </p>
-                    <p class="card-label">total books</p>
+                    <p class="card-label">Total books</p>
                 </div>
                 <div class="card">
                     <p class="card-number">
                         <?php echo $totalCategories; ?>
                     </p>
-                    <p class="card-label">categories</p>
+                    <p class="card-label">Categories</p>
                 </div>
                 <a href="../issue/issue.php" style="text-decoration:none;">
                     <div class="card">
                         <form method="post" class="inline-form">
                             <button type="button" class="card-button" aria-label="issue">
                                 <p class="card-number">0</p>
-                                <p class="card-label">issue</p>
+                                <p class="card-label">Issue</p>
                             </button>
                         </form>
                     </div>

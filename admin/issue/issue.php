@@ -441,15 +441,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
                     <!-- replace src with your logo path -->
                     <img src="../../assets/images/logo3.png" alt="Logo">
                 </div>
-                <h1 class="brand-name">Admin Dashboard</h1>
+                <h1 class="brand-name"><a href="../dashboard/dashboard.php" style="text-decoration: none; color:#8a7650;">Admin Dashboard</a></h1>
             </div>
 
             <div class="nav-actions">
-                <h4 class="nav-username">CYRUS</h4>
+                <h4 class="nav-username">ADMIN</h4>
                 <div class="avatar-frame">
                     <img src="../../assets/images/profile3.png" alt="Profile">
                 </div>
-                <button class="exit-btn" type="button">Exit</button>
+                <button class="exit-btn" type="button">Logout</button>
             </div>
         </nav>
 
