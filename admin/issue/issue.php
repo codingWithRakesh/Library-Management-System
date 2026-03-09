@@ -163,6 +163,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
 }
 ?>
 
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
+    session_destroy();
+    header("Location: ../login/admin_login.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -449,7 +457,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
                 <div class="avatar-frame">
                     <img src="../../assets/images/profile3.png" alt="Profile">
                 </div>
-                <button class="exit-btn" type="button">Logout</button>
+                <form method="post">
+                    <button type="submit" class="exit-btn" name="logout_submit">Logout</button>
+                </form>
             </div>
         </nav>
 

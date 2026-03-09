@@ -39,6 +39,15 @@ if ($totalCategoriesResult && $totalCategoriesResult->num_rows > 0) {
     $row = mysqli_fetch_assoc($totalCategoriesResult);
     $totalCategories = $row['total_categories'];
 }
+
+//total issued book count
+$totalIssuedBooksSql = "SELECT COUNT(*) AS total_issued_books FROM issued_books";
+$totalIssuedBooksResult = mysqli_query($conn, $totalIssuedBooksSql);
+$totalIssuedBooks = 0;
+if ($totalIssuedBooksResult && $totalIssuedBooksResult->num_rows > 0) {
+    $row = mysqli_fetch_assoc($totalIssuedBooksResult);
+    $totalIssuedBooks = $row['total_issued_books'];
+}
 ?>
 
 <?php
@@ -146,6 +155,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
     } else {
         echo "Error uploading files.";
     }
+}
+?>
+
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
+    session_destroy();
+    header("Location: ../login/admin_login.php");
+    exit();
 }
 ?>
 
@@ -761,7 +778,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
                 <div class="avatar-frame">
                     <img src="../../assets/images/profile3.png" alt="Profile">
                 </div>
-                <button class="exit-btn" type="button">Logout</button>
+                <form method="post">
+                    <button type="submit" class="exit-btn" name="logout_submit">Logout</button>
+                </form>
             </div>
         </nav>
 
@@ -789,7 +808,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
                     <div class="card">
                         <form method="post" class="inline-form">
                             <button type="button" class="card-button" aria-label="issue">
-                                <p class="card-number">0</p>
+                                <p class="card-number">
+                                    <?php echo $totalIssuedBooks; ?>
+                                </p>
                                 <p class="card-label">Issue</p>
                             </button>
                         </form>
