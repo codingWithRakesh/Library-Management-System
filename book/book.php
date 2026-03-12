@@ -114,11 +114,20 @@ $currentUser = [
 ];
 ?>
 
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
+    session_destroy();
+    header("Location: ../student/login/login.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title><?php echo $mainBook['title']; ?> - Book Details</title>
     <style>
         /* CSS Color Variables from your palette */
@@ -164,6 +173,32 @@ $currentUser = [
             display: flex;
             align-items: center;
             gap: 5px;
+            text-decoration: none;
+        }
+
+        .logoContainer{
+            width: 16.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            /* border: 2px solid black; */
+        }
+
+        .logoContainer a{
+            text-decoration: none;
+        }
+
+        .logo{
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-link{
+            color: #8a7650;
+            font-weight: bold;
+            font-size: 14px;
         }
 
         .site-logo {
@@ -328,6 +363,44 @@ $currentUser = [
             color: var(--sage-green);
         }
 
+        .user-info{
+            height: 35px;
+            width: 35px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .user-info img { width: 100%; height: 100%; object-fit: cover; }
+
+        .modal-logout{
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: #fff;
+            border: 1px solid #8a7650;
+            width: 10rem;
+            display: none;
+            flex-direction: column;
+            padding: 1rem;
+            gap: 10px;
+            border-radius: 4px;
+        }
+
+        .btn-logout {
+            background: #8a7650;
+            color: white;
+            border: none;
+            padding: 8px 0;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .site-header {
@@ -352,15 +425,35 @@ $currentUser = [
 <body>
 
 <header class="site-header">
-    <div class="header-left">
-        <img src="../assets/images/logo3.png" alt="NeonLeaf Logo" style="width: 40px; height: 40px;">
-        <span class="company-name">NeonLeaf</span>
+    <div class="header-left logoContainer" >
+        <a class="logo" href="../index.php">
+            <img src="../assets/images/logo3.png" alt="NeonLeaf Logo" style="width: 40px; height: 40px;">
+            <span class="company-name">NeonLeaf</span>
+        </a>
+        <a class="nav-link" href="../student/issue/issue.php">My Books <i class="fa-solid fa-caret-down"></i></a>
     </div>
-    <div class="header-right">
-        <span class="user-name"><?php echo $currentUser['name']; ?></span>
-        <img src="<?php echo $currentUser['photo']; ?>" alt="User Profile" class="user-photo">
+    <div id="user-info" class="user-info">
+        <img src="../assets/images/default.jpeg" alt="User Icon">
     </div>
 </header>
+
+<div id="modal-logout" class="modal-logout">
+    Hello <?php echo $userName; ?>
+    <form method="post">
+        <button class="btn-logout" name="logout">Logout</button>
+    </form>
+</div>
+
+<script>
+    let isOn = false;
+    const userInfo = document.getElementById('user-info');
+    const modalLogout = document.getElementById('modal-logout');
+
+    userInfo.addEventListener('click', () => {
+        isOn = !isOn;
+        modalLogout.style.display = isOn ? 'flex' : 'none';
+    });
+</script>
 
 <div class="container">
     <div class="book-details">

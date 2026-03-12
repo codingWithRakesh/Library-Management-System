@@ -20,7 +20,7 @@
                     $_SESSION['user_name'] = $row['name'];
                     $_SESSION['user_email'] = $row['email'];
 
-                    header("Location: ../../home/index.php");
+                    header("Location: ../../index.php");
                     exit();
                 } else {
                     $error_message = "Invalid password. Please try again.";

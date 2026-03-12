@@ -127,6 +127,14 @@
     $navbarSearchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
 ?>
 
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
+    session_destroy();
+    header("Location: ../login/login.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -437,6 +445,46 @@
             padding: 0;
         }
 
+        .user-info{
+            height: 35px;
+            width: 35px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .user-info img { width: 100%; height: 100%; object-fit: cover; }
+
+        .modal-logout{
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: #fff;
+            border: 1px solid #8a7650;
+            width: 10rem;
+            display: none;
+            flex-direction: column;
+            padding: 1rem;
+            padding-top: 1.5rem;
+            gap: 10px;
+            border-radius: 4px;
+            font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif !important;
+        }
+
+        .btn-logout {
+            background: #8a7650;
+            color: white;
+            border: none;
+            padding: 8px 0;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
         .issue-navbar .search-icon {
             padding: 8px 12px;
             color: var(--secondary-color);
@@ -487,23 +535,32 @@
 <body>
 
     <header class="issue-navbar">
-        <div class="logo logo-front">
+        <a class="logo logo-front" href="../../index.php">
             <img src="../../assets/images/logo3.png" alt="NeonLeaf Logo" style="width: 40px; height: 40px;">
             NeonLeaf
+        </a>
+        <div id="user-info" class="user-info">
+            <img src="../../assets/images/default.jpeg" alt="User Icon">
         </div>
-
-        <form class="search-bar" method="GET" action="?">
-            <select name="category_filter" class="search-select">
-                <option>All</option>
-                <option>Category</option>
-                <option>Author</option>
-            </select>
-            <input type="text" name="search" class="search-input" placeholder="Search (e.g., 'Python' or 'Science')" value="<?php echo htmlspecialchars($navbarSearchQuery); ?>" required>
-            <button type="submit" class="search-btn">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            </button>
-        </form>
     </header>
+
+    <div id="modal-logout" class="modal-logout">
+        Hello <?php echo $userName; ?>
+        <form method="post">
+            <button class="btn-logout" name="logout">Logout</button>
+        </form>
+    </div>
+
+    <script>
+        let isOn = false;
+        const userInfo = document.getElementById('user-info');
+        const modalLogout = document.getElementById('modal-logout');
+
+        userInfo.addEventListener('click', () => {
+            isOn = !isOn;
+            modalLogout.style.display = isOn ? 'flex' : 'none';
+        });
+    </script>
 
 
         <!-- header + search -->

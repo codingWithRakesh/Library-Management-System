@@ -1,9 +1,9 @@
 <?php
     session_start();
-    include "../db/db.php";
+    include "db/db.php";
 
     if (!isset($_SESSION['user_id'])) {
-        header("Location: ../student/login/login.php");
+        header("Location: student/login/login.php");
         exit();
     }
 
@@ -11,7 +11,7 @@
     $checkResult = mysqli_query($conn, $checkUserByIdSql);
     if (!$checkResult || mysqli_num_rows($checkResult) === 0) {
         session_destroy();
-        header("Location: ../login/login.php");
+        header("Location: student/login/login.php");
         exit();
     }
 
@@ -27,7 +27,7 @@
     if ($allBooksResult && $allBooksResult->num_rows > 0) {
         while ($row = mysqli_fetch_assoc($allBooksResult)) {
             $dbImage = $row["image_path"] ?? "";
-            $finalImageUrl = !empty($dbImage) ? "../assets/images/" . $dbImage : "https://placehold.co/150x220/8e977d/ffffff?text=No+Image";
+            $finalImageUrl = !empty($dbImage) ? "assets/images/" . $dbImage : "https://placehold.co/150x220/8e977d/ffffff?text=No+Image";
 
             $allBooks[] = [
                 "id" => $row["id"],
@@ -61,13 +61,21 @@
     }
 ?>
 
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
+    session_destroy();
+    header("Location: student/login/login.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Library Catalog</title>
-    <link rel="icon" href="../../assets/images/logo3.png" type="image/png">
+    <link rel="icon" href="assets/images/logo3.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
     
@@ -133,6 +141,24 @@
             font-weight: bold;
         }
 
+        .right-section{
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info{
+            height: 35px;
+            width: 35px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .user-info img { width: 100%; height: 100%; object-fit: cover; }
+
         .search-bar {
             display: flex;
             align-items: center;
@@ -142,6 +168,31 @@
             overflow: hidden;
             width: 400px;
             margin: 0 20px;
+        }
+
+        .modal-logout{
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: #fff;
+            border: 1px solid var(--secondary-color);
+            width: 10rem;
+            display: none;
+            flex-direction: column;
+            padding: 1rem;
+            gap: 10px;
+            border-radius: 4px;
+        }
+
+        .btn-logout {
+            background: var(--secondary-color);
+            width: 100%;
+            color: white;
+            border: none;
+            padding: 8px 0;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
         .search-select {
@@ -345,27 +396,50 @@
 <body>
 
     <header>
-        <div class="logo logo-front">
-            <img src="../assets/images/logo3.png" alt="NeonLeaf Logo" style="width: 40px; height: 40px;">
+        <a href="index.php" class="logo logo-front">
+            <img src="assets/images/logo3.png" alt="NeonLeaf Logo" style="width: 40px; height: 40px;">
             NeonLeaf
-        </div>
+        </a>
         
         <nav class="nav-links">
-            <a href="../student/issue/issue.php">My Books <i class="fa-solid fa-caret-down"></i></a>
+            <a href="student/issue/issue.php">My Books <i class="fa-solid fa-caret-down"></i></a>
         </nav>
 
-        <form class="search-bar" method="GET" action="?">
-            <select name="category_filter" class="search-select">
-                <option>All</option>
-                <option>Category</option>
-                <option>Author</option>
-            </select>
-            <input type="text" name="search" class="search-input" placeholder="Search (e.g., 'Python' or 'Science')" value="<?php echo htmlspecialchars($searchQuery); ?>" required>
-            <button type="submit" class="search-btn">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            </button>
-        </form>
+        <div class="right-section">
+            <form class="search-bar" method="GET" action="?">
+                <select name="category_filter" class="search-select">
+                    <option>All</option>
+                    <option>Category</option>
+                    <option>Author</option>
+                </select>
+                <input type="text" name="search" class="search-input" placeholder="Search (e.g., 'Python' or 'Science')" value="<?php echo htmlspecialchars($searchQuery); ?>" required>
+                <button type="submit" class="search-btn">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                </button>
+            </form>
+            <div id="user-info" class="user-info">
+                <img src="assets/images/default.jpeg" alt="User Icon">
+            </div>
+        </div>
     </header>
+
+    <div id="modal-logout" class="modal-logout">
+        Hello <?php echo $userName; ?>
+        <form method="post">
+            <button class="btn-logout" name="logout">Logout</button>
+        </form>
+    </div>
+
+    <script>
+        let isOn = false;
+        const userInfo = document.getElementById('user-info');
+        const modalLogout = document.getElementById('modal-logout');
+
+        userInfo.addEventListener('click', () => {
+            isOn = !isOn;
+            modalLogout.style.display = isOn ? 'flex' : 'none';
+        });
+    </script>
 
     <main class="container">
         
@@ -387,7 +461,7 @@
                             <div class="book-card">
                                 <img src="<?php echo htmlspecialchars($book['image']); ?>" alt="<?php echo htmlspecialchars($book['title']); ?>" class="book-cover">
                                 
-                                <a href="../book/book.php?id=<?php echo urlencode($book['id']); ?>&&category=<?php echo urlencode($categoryName); ?>" style="text-decoration: none; color: inherit;">
+                                <a href="book/book.php?id=<?php echo urlencode($book['id']); ?>&category=<?php echo urlencode($categoryName); ?>" style="text-decoration: none; color: inherit;">
                                     <button class="action-btn <?php echo htmlspecialchars($book['btn_class']); ?>">
                                     <?php echo htmlspecialchars($book['status']); ?>
                                 </button>
