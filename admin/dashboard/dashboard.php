@@ -13,8 +13,10 @@ $tableSql = "CREATE TABLE IF NOT EXISTS books (
         name VARCHAR(255) NOT NULL,
         author VARCHAR(255) NOT NULL,
         category VARCHAR(255) NOT NULL,
+        discription VARCHAR(255) NOT NULL,
         image_path VARCHAR(255) NOT NULL,
-        pdf_path VARCHAR(255) NULL
+        pdf_path VARCHAR(255) NULL,
+        isUrl BOOLEAN NOT NULL DEFAULT TRUE
     )";
 
 if (!mysqli_query($conn, $tableSql)) {
@@ -120,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book_submit'])) {
         name VARCHAR(255) NOT NULL,
         author VARCHAR(255) NOT NULL,
         category VARCHAR(255) NOT NULL,
-        discription TEXT,
+        discription VARCHAR(255) NOT NULL,
         image_path VARCHAR(255) NOT NULL,
         pdf_path VARCHAR(255) NULL,
         isUrl BOOLEAN NOT NULL DEFAULT TRUE

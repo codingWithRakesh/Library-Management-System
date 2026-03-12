@@ -23,8 +23,10 @@
         name VARCHAR(255) NOT NULL,
         author VARCHAR(255) NOT NULL,
         category VARCHAR(255) NOT NULL,
+        discription VARCHAR(255) NOT NULL,
         image_path VARCHAR(255) NOT NULL,
-        pdf_path VARCHAR(255) NULL
+        pdf_path VARCHAR(255) NULL,
+        isUrl BOOLEAN NOT NULL DEFAULT TRUE
     )";
 
     $issueTableSql = "CREATE TABLE IF NOT EXISTS issued_books (
