@@ -27,7 +27,9 @@
     if ($allBooksResult && $allBooksResult->num_rows > 0) {
         while ($row = mysqli_fetch_assoc($allBooksResult)) {
             $dbImage = $row["image_path"] ?? "";
-            $finalImageUrl = !empty($dbImage) ? "assets/images/" . $dbImage : "https://placehold.co/150x220/8e977d/ffffff?text=No+Image";
+            $isUrl = $row["isUrl"] ?? false;
+            // $finalImageUrl = !empty($dbImage) ? "assets/images/" . $dbImage : "https://placehold.co/150x220/8e977d/ffffff?text=No+Image";
+            $finalImageUrl = $isUrl ? $dbImage : (!empty($dbImage) ? "assets/images/" . $dbImage : "https://placehold.co/150x220/8e977d/ffffff?text=No+Image");
 
             $allBooks[] = [
                 "id" => $row["id"],
@@ -267,7 +269,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
         .carousel::-webkit-scrollbar-track { background: var(--header-bg); border-radius: 4px; }
 
         .book-card {
-            min-width: 150px;
+            min-width: 200px;
             width: 200px;
             display: flex;
             flex-direction: column;

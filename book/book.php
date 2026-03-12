@@ -39,12 +39,13 @@
     if ($booksByCategoryResult->num_rows > 0) {
         $suggestedBooks = [];
         while ($row = mysqli_fetch_assoc($booksByCategoryResult)) {
+            $isUrlSuggested = $row["isUrl"] ?? false;
             $suggestedBooks[] = [
                 "id" => $row['id'],
                 "title" => $row['name'] ?? 'Unknown Title',
                 "author" => $row['author'] ?? 'Unknown Author',
                 "category" => $row['category'] ?? 'Unknown Category',
-                "image" => !empty($row['image_path']) ? "../assets/images/" . $row['image_path'] : "https://covers.openlibrary.org/b/id/8259449-L.jpg"
+                "image" => $isUrlSuggested ? $row['image_path'] : (!empty($row['image_path']) ? "../assets/images/" . $row['image_path'] : "https://covers.openlibrary.org/b/id/8259449-L.jpg")
             ];
         }
     } else {
@@ -98,11 +99,12 @@
 
 <?php
 $dbImage = $book["image_path"] ?? "";
+$isUrl = $book["isUrl"] ?? false;
 $mainBook = [
     "title" => $book['name'] ?? 'Unknown Title',
     "author" => $book['author'] ?? 'Unknown Author',
-    "description" => "A mesmerizing tale of a young boy's quest to protect a mysterious book in post-war Barcelona. Hidden deep in the city is the Cemetery of Forgotten Books, a library of obscure and forgotten titles. It is a story weaving romance, mystery, and magic.",
-    "image" => !empty($dbImage) ? "../assets/images/" . $dbImage : "https://covers.openlibrary.org/b/id/8259449-L.jpg",
+    "description" => $book['discription'] ?? "A mesmerizing tale of a young boy's quest to protect a mysterious book in post-war Barcelona. Hidden deep in the city is the Cemetery of Forgotten Books, a library of obscure and forgotten titles. It is a story weaving romance, mystery, and magic.",
+    "image" => $isUrl ? $dbImage : (!empty($dbImage) ? "../assets/images/" . $dbImage : "https://covers.openlibrary.org/b/id/8259449-L.jpg"),
     "category" => $book['category'] ?? 'Unknown Category',
     "pdf_link" => $book['pdf_path'] ? "../assets/pdfs/" . $book['pdf_path'] : ""
 ];
