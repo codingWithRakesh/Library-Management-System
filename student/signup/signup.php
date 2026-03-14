@@ -307,6 +307,13 @@
             font-weight: 700;
         }
 
+        .message{
+            /* border: 1px solid #000; */
+            display: none;
+            text-align: center;
+            color: red;
+        }
+
         /* Responsive adjustments */
         @media (max-width: 900px) {
             .branding-side {
@@ -377,10 +384,31 @@
 
 
                     <button type="submit" class="btn btn-primary">Register</button>
+                    <p class="message">This Password Used by Someone Else</p>
                                       
                 </form>
 
-                
+                <script>
+                    const form = document.querySelector('form');
+                    const message = document.querySelector('.message');
+                    const password = document.getElementById('password');
+                    form.addEventListener('submit', (e) => {
+                        const value = password.value.trim();
+
+                        if (value === "123456") {
+                            e.preventDefault();
+                            message.style.display = 'block';
+                        } else {
+                            message.style.display = 'none';
+                        }
+                    });
+
+                    password.addEventListener('input', () => {
+                        if (message.style.display === 'block') {
+                            message.style.display = 'none';
+                        }
+                    });
+                </script>
 
                 <div class="footer-text">
                      Already have an account? <a href="../login/login.php">Sign In</a>

@@ -86,7 +86,6 @@
                 $sqlUpdate = "UPDATE issued_books SET return_date = '$returnDate' WHERE book_id = '$bookId' AND student_id = '$studentId' ORDER BY id DESC LIMIT 1";
                 mysqli_query($conn, $sqlUpdate);
                 $isBorrowed = true;
-                echo "Book issued successfully. Return date: " . $returnDate;
                 header("Refresh: 2; url=" . $_SERVER['REQUEST_URI']);
             } else {
                 echo "Error issuing book: " . mysqli_error($conn);
