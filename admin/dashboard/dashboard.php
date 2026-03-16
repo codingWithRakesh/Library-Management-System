@@ -611,6 +611,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
             z-index: 999;
         }
 
@@ -620,7 +621,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
             padding: 24px 26px;
             /* reduced padding */
             width: 100%;
-            max-width: 440px;
+            max-width: 760px;
+            max-height: 72vh;
+            overflow-y: auto;
             border-radius: 12px;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
         }
@@ -630,6 +633,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
             font-family: Arial, sans-serif;
             font-size: 14px;
             color: #2b2a2a;
+        }
+
+        .popup-form .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .popup-form .form-group,
+        .popup-form .file-group {
+            min-width: 0;
+        }
+
+        .popup-form .form-group.full {
+            grid-column: 1 / -1;
         }
 
         /* Labels */
@@ -654,6 +673,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
         .text-input:focus {
             outline: none;
             border-color: var(--c-sage);
+        }
+
+        .popup-form .form-grid .text-input {
+            min-width: 0;
+            margin-bottom: 0;
         }
 
         /* Hide default file input */
@@ -684,6 +708,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
             overflow: hidden;
         }
 
+        .popup-form .form-grid .file-box {
+            width: 100%;
+            height: 130px;
+            margin: 0;
+        }
+
         .file-box:hover {
             background-color: #d7c89a;
         }
@@ -700,7 +730,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
 
         .file-inline-image {
             display: none;
-            max-width: 100%;
+            max-width: 110px;
             max-height: 110px;
             border-radius: 6px;
             object-fit: contain;
@@ -779,10 +809,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
             z-index: 2;
             background: var(--c-linen);
             padding: 24px 26px;
-            max-width: 440px;
+            max-width: 760px;
+            max-height: 72vh;
+            overflow-y: auto;
             width: 100%;
             border-radius: 12px;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-grid;
+            place-items: center;
+            text-decoration: none;
+            /* background: rgba(255, 255, 255, 0.98); */
+            color: #3d3529;
+            font-size: 18px;
+            line-height: 1;
+            /* box-shadow: 0 8px 18px rgba(43, 36, 24, 0.16); */
+            z-index: 3;
+            border: none;
+        }
+
+        .popup-close:hover,
+        .popup-close:focus {
+            background: #fff;
+            text-decoration: none;
+            /* transform: translateY(-1px); */
+
+        }
+
+        .popup-close:focus {
+            outline: 2px solid var(--c-brown);
+            outline-offset: 2px;
         }
 
         /* CSS (place near the other card/grid styles) */
@@ -795,6 +859,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
             height: 100%;
         }
     
+
+        @media (max-width: 720px) {
+            .popup-form .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .popup-form .form-group.full {
+                grid-column: auto;
+            }
+        }
 
         /* Mobile */
         @media (max-width: 480px) {
@@ -928,32 +1002,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
             <a class="overlay-close" href="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">Close popup</a>
 
             <div class="popup-container">
+                <a class="popup-close" href="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" aria-label="Close popup">&times;</a>
                 <form class="popup-form" method="post" enctype="multipart/form-data">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Name</label>
+                            <input class="text-input" type="text" name="name" required>
+                        </div>
 
-                    <label class="form-label">Name</label>
-                    <input class="text-input" type="text" name="name" required>
+                        <div class="form-group">
+                            <label class="form-label">Author</label>
+                            <input class="text-input" type="text" name="author" required>
+                        </div>
 
-                    <label class="form-label">Category</label>
-                    <input class="text-input" type="text" name="category" required>
+                        <div class="form-group full">
+                            <label class="form-label">Category</label>
+                            <input class="text-input" type="text" name="category" required>
+                        </div>
 
-                    <label class="form-label">Author</label>
-                    <input class="text-input" type="text" name="author" required>
+                        <div class="form-group full">
+                            <label class="form-label">Description</label>
+                            <textarea class="text-input" name="description" rows="4" style="resize:none;"></textarea>
+                        </div>
 
-                    <label class="form-label">Description</label>
-                    <textarea class="text-input" name="description" rows="4" style="resize:none;"></textarea>
+                        <div class="file-group">
+                            <label class="file-box" for="image" id="image-box">
+                                <span class="file-box-text" id="image-box-text">Click to upload book image</span>
+                                <img id="image-inline-preview" class="file-inline-image" alt="Book image preview">
+                                <button type="button" class="file-clear-btn" id="clear-image" aria-label="Clear selected image">&times;</button>
+                            </label>
+                            <input class="file-input" type="file" name="image" id="image" accept="image/*">
+                        </div>
 
-                    <label class="file-box" for="image" id="image-box">
-                        <span class="file-box-text" id="image-box-text">Click to upload book image</span>
-                        <img id="image-inline-preview" class="file-inline-image" alt="Book image preview">
-                        <button type="button" class="file-clear-btn" id="clear-image" aria-label="Clear selected image">&times;</button>
-                    </label>
-                    <input class="file-input" type="file" name="image" id="image" accept="image/*">
-
-                    <label class="file-box" for="pdf" id="pdf-box">
-                        <span class="file-box-text" id="pdf-box-text">Click to upload book PDF</span>
-                        <button type="button" class="file-clear-btn" id="clear-pdf" aria-label="Clear selected PDF">&times;</button>
-                    </label>
-                    <input class="file-input" type="file" name="pdf" id="pdf" accept=".pdf,application/pdf">
+                        <div class="file-group">
+                            <label class="file-box" for="pdf" id="pdf-box">
+                                <span class="file-box-text" id="pdf-box-text">Click to upload book PDF</span>
+                                <button type="button" class="file-clear-btn" id="clear-pdf" aria-label="Clear selected PDF">&times;</button>
+                            </label>
+                            <input class="file-input" type="file" name="pdf" id="pdf" accept=".pdf,application/pdf">
+                        </div>
+                    </div>
 
                     <button class="submit-btn" type="submit" name="add_book_submit">Submit</button>
 
