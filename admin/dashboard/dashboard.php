@@ -815,12 +815,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
             width: 100%;
             border-radius: 12px;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            padding-top: 3rem;
         }
 
         .popup-close {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 12px;
+            right: 15px;
             width: 30px;
             height: 30px;
             border-radius: 50%;
@@ -834,6 +835,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout_submit'])) {
             /* box-shadow: 0 8px 18px rgba(43, 36, 24, 0.16); */
             z-index: 3;
             border: none;
+            font-size: 2rem;
         }
 
         .popup-close:hover,
