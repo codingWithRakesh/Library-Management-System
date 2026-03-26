@@ -1,26 +1,23 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "liberary_management_system";
+    $servername = "localhost";
+    $username = "root";
+    $password = "";
+    $dbname = "liberary_management_system";
 
-$conn = mysqli_connect($servername, $username, $password);
+    $conn = mysqli_connect($servername, $username, $password);
 
-if (!$conn) {
-    die("Server connection failed: " . mysqli_connect_error());
-}
+    if (!$conn) {
+        die("Server connection failed: " . mysqli_connect_error());
+    }
 
-$sql = "CREATE DATABASE IF NOT EXISTS $dbname";
-mysqli_query($conn, $sql);
+    $sql = "CREATE DATABASE IF NOT EXISTS $dbname";
+    mysqli_query($conn, $sql);
 
-$conn = mysqli_connect($servername, $username, $password, $dbname);
+    $conn = mysqli_connect($servername, $username, $password, $dbname);
 
-if (!$conn) {
-    die("Database connection failed: " . mysqli_connect_error());
-}
-
-// echo "<script>alert('Connected successfully to the database.');</script>";
-
+    if (!$conn) {
+        die("Database connection failed: " . mysqli_connect_error());
+    }
 
     $checkTable = mysqli_query($conn, "SHOW TABLES LIKE 'students'");
         if (mysqli_num_rows($checkTable) == 0) {
