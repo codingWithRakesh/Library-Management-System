@@ -20,7 +20,7 @@
     }
 
     $checkTable = mysqli_query($conn, "SHOW TABLES LIKE 'students'");
-        if (mysqli_num_rows($checkTable) == 0) {
+    if (mysqli_num_rows($checkTable) == 0) {
 
         $sqlFile = __DIR__ . "/seed.sql";
 

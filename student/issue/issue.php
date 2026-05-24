@@ -69,7 +69,7 @@
             $returnDate = $overdueRow['return_date'];
             
             $daysOverdue = floor((strtotime(date('Y-m-d')) - strtotime($returnDate)) / (60 * 60 * 24));
-            $fineAmount = $daysOverdue * 10;
+            $fineAmount = $daysOverdue * 3;
             
             $checkFineSql = "SELECT id FROM fines WHERE issued_book_id = $issuedBookId";
             $fineExists = mysqli_query($conn, $checkFineSql);
